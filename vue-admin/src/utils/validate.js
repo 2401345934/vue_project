@@ -16,9 +16,22 @@ export  function stripscript(str) {
 
 export  function validateEmail(value) {
   let reg = /^(?!\D+$)(?![^a-zA-Z]+$)\S{6,20}$/
-  if (!reg.test(value)) {
-    return true
-  } else {
-    return false
-  }
+
+  return !reg.test(value) ? true : false
 }
+
+
+// 验证密码  6 - 20 位数字 字母
+
+export  function validateP(value) {
+  let reg = /^(?!\D+$)(?![^a-zA-Z]+$)\S{6,20}$/
+  return !reg.test(value) ? true : false
+}
+
+// 验证验证码
+
+export  function validateC(value) {
+  let reg = /^[a-z0-9]{6}$/
+  return !reg.test(value) ? true : false
+}
+
