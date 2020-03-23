@@ -70,8 +70,6 @@
   export default {
     name: "login",
     setup(props, { refs, root }) {
-
-
       // 验证用户名
 
       let validateUsername = (rule, value, callback) => {
@@ -228,17 +226,27 @@
           code: ruleForm.code
         };
 
-        Login(data).then((response) => {
-          let res = response.data.message;
-          root.$message({
-            message: res,
-            type: "success"
-          });
-
-
-        }).catch(error => {
+        root.$store.dispatch("app/login", data)
+          .then((response) => {
+            location.href = "/console";
+            //页面跳转
+            root.$router.push({
+              name: "Console"
+            });
+          }).catch((err) => {
 
         });
+
+        // Login(data).then((response) => {
+        //   // location.href = "/console"
+        //
+        //   //页面跳转
+        //   root.$router.push({
+        //     name: "Console"
+        //   });
+        // }).catch(error => {
+        //
+        // });
       });
 
       // 注册方法
@@ -362,7 +370,7 @@
         submitForm,
         rules,
         ruleForm,
-        getSms,
+        getSms
       };
 
     }

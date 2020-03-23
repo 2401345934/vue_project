@@ -1,12 +1,13 @@
 import axios from "axios";
 import { Message } from "element-ui";
+import { getToken ,getUserName} from "./app";
 
 //创建axios  赋给变量service
 const BASEURL = process.env.NODE_ENV === "production" ? "" : "/devApi";
 
 const service = axios.create({
   baseURL: BASEURL,
-  timeout: 15000,
+  timeout: 15000
   // headers: { "X-Custom-Header": "foobar" }
 });
 
@@ -18,6 +19,8 @@ service.interceptors.request.use(function(config) {
   //传 id   token  sui  都可以
   //方法 config.headers['Token']  = xxx
 
+  config.headers["Tokey"] = getToken();
+  config.headers["Username"] = getUserName();
 
   // 在发送请求之前做些什么
   return config;

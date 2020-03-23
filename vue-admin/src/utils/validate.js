@@ -2,6 +2,9 @@
 /*
 * 过滤特殊字符
 * */
+
+
+
 export  function stripscript(str) {
   var pattern = new RegExp("[`~!@#$^&*()=|{}':;',\\[\\].<>/?~！@#￥……&*  %()  & ;—|{}【】‘；：”“'。，、？]")
   var rs = "";
