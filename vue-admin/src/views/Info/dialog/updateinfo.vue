@@ -1,5 +1,5 @@
 <template>
-  <el-dialog title="新增" :visible.sync="data.dialogTableVisible" @close="close" width="580px" @open="openDialog">
+  <el-dialog title="修改" :visible.sync="data.dialogTableVisible" @close="close" width="580px" @open="openDialog">
     <el-form :model="form" ref="formName">
       <el-form-item label="类别:" :label-width="data.formLabelWidth">
         <el-select v-model="form.category" placeholder="请选择活动区域">
@@ -25,6 +25,7 @@
 <script>
   import { reactive, ref, isRef, onMounted, watch } from "@vue/composition-api";
   import { add } from "@/api/news";
+  import { getCategory, getList, editInfo } from "@/api/news";
 
   export default {
     name: "info",
@@ -34,11 +35,14 @@
         default: false
       },
       flag2: {
-        type: Function,
+        type: Function
       },
       tmp: {
         type: Array,
         default: () => []
+      },
+      id: {
+        type: Object
       }
     },
     setup(props, { root, emit }) {
@@ -46,18 +50,32 @@
       //打开弹窗
       const openDialog = () => {
         categoryOption.item = props.tmp;
+        getInfoList();
+
       };
 
 
+      //请求数据
+      const getInfoList = () => {
+        getList(
+          { id: props.id.infoId, pageNumber: 1, pageSize: 10 }
+        ).then((res) => {
+          console.log();
+          let data = res.data.data.data[0];
+          form.title = data.title;
+          form.content = data.content;
+          form.category = data.categoryId;
+        });
+      };
 
 
       //总数据
       let data = reactive({
         submitLoading: false,
         dialogTableVisible: false,
-        dialogFormVisible:false,
-        formLabelWidth: "70px",
-      })
+        dialogFormVisible: false,
+        formLabelWidth: "70px"
+      });
       // {
       //   category: 分类ID（number）*
       //   title: 标题（string）*
@@ -68,21 +86,27 @@
       const addInfo = () => {
         data.submitLoading = true;
         let response = {
-          category: form.category,
+          categoryId: form.category,
           title: form.title,
-          content:form.content,
-        }
+          content: form.content,
+          id: props.id.infoId,
+        };
 
         if (!form.title || !form.content || !form.category) {
           root.$message({
             message: "标题和内容不能为空",
             type: "error"
           });
-          data.submitLoading= false;
-          return
-        } ;
+          data.submitLoading = false;
+          return;
+        }
+//id: 信息ID（string）
+// categoryId: 分类ID（string）
+// title: 标题（string）
+// content: 内容（string）
+// imgUrl: 缩略图（string
 
-        add(response).then((res) => {
+        editInfo(response).then((res) => {
           root.$message({
             message: res.data.message,
             type: "success"
@@ -91,13 +115,13 @@
           form.category = "";
           form.title = "";
           form.content = "";
-          close()
-          props.flag2()
-        }).catch((err)=>{
-          data.submitLoading= false;
-        })
+          close();
+          props.flag2();
+        }).catch((err) => {
+          data.submitLoading = false;
+        });
 
-      }
+      };
 
 
       //类别
@@ -110,8 +134,8 @@
       //定义数据
       const form = reactive({
         category: "",
-        title:"",
-        content:""
+        title: "",
+        content: ""
       });
 
       //定义函数
@@ -134,7 +158,7 @@
         close,
         openDialog,
         categoryOption,
-        addInfo,
+        addInfo
       };
     }
 

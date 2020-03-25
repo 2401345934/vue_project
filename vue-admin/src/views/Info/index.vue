@@ -5,12 +5,12 @@
         <div class="label-wrap category">
           <label>分类:</label>
           <div class="wrap-content">
-            <el-select v-model="variable.value" placeholder="请选择" style="width: 100%;">
+            <el-select v-model="variable.value" placeholder="请选择" style="width: 110%;">
               <el-option
                       v-for="item in options.item"
                       :key="item.value"
-                      :label="item.label"
-                      :value="item.category_name">
+                      :label="item.category_name"
+                      :value="item.id">
               </el-option>
             </el-select>
           </div>
@@ -26,6 +26,8 @@
                     align="right"
                     start-placeholder="开始日期"
                     end-placeholder="结束日期"
+                    format="yyyy 年 MM 月 dd 日"
+                    value-format="yyyy-MM-dd HH:mm:ss"
                     :default-time="['12:00:00', '08:00:00']"
                     style="width: 100%;">
             </el-date-picker>
@@ -51,7 +53,7 @@
       </el-col>
 
       <el-col :span="2">
-        <el-button type="danger" style="width: 100%;">搜索</el-button>
+        <el-button type="danger" style="width: 100%;" @click="search">搜索</el-button>
       </el-col>
       <el-col :span="2" style="margin-left: 41px;">
         <el-button type="danger" class="fr" style="width: 100%;" @click="variable.ejectFlag = true">新增</el-button>
@@ -63,16 +65,17 @@
 
 
     <!--表格-->
-    <el-table :data="tableData.item" border style="width: 100%" @selection-change="handleSelectionChange">>
+    <el-table :data="tableData.item" border style="width: 100%" @selection-change="handleSelectionChange"
+              v-loading="variable.loadingData">
       <el-table-column type="selection" width="50"></el-table-column>
       <el-table-column prop="title" label="标题"></el-table-column>
-      <el-table-column prop="categoryId" label="类型" width="100"></el-table-column>
-      <el-table-column prop="createDate" label="日期" width="160"></el-table-column>
-      <el-table-column prop="content" label="管理员" width="100"></el-table-column>
+      <el-table-column prop="categoryId" label="类型" width="100" :formatter="toCategory"></el-table-column>
+      <el-table-column prop="createDate" label="日期" width="160" :formatter="toData"></el-table-column>
+      <el-table-column prop="id" label="管理员" width="100"></el-table-column>
       <el-table-column label="操作" width="155">
-        <template>
-          <el-button type="danger" size="mini" @click="deleteItem">删除</el-button>
-          <el-button type="success" size="mini" @click="variable.ejectFlag = true">编辑</el-button>
+        <template slot-scope="scope">
+          <el-button type="danger" size="mini" @click="deleteItem(scope.row.id)">删除</el-button>
+          <el-button type="success" size="mini" @click="UpdateInfoBj(scope.row.id)">编辑</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -96,16 +99,23 @@
       </el-col>
     </el-row>
 
-    <!--点击弹出框-->
-    <Eject :flag.sync="variable.ejectFlag" @close="closEeject" :tmp="options.item"/>
+    <!--新增弹出框-->
+    <Eject :flag.sync="variable.ejectFlag" @close="closEeject" :tmp="options.item" :flag2="GxInfoList"/>
+
+    <!--修改弹出框-->
+    <UpdateInfo :flag.sync="variable.updateDialog" @close="closUpdateInfo" :tmp="options.item" :flag2="GxInfoList"
+                :id="variable"/>
+
   </div>
 </template>
 
 <script>
   import Eject from "./dialog/info";
+  import UpdateInfo from "./dialog/updateinfo";
   import { reactive, ref, isRef, onMounted, watch } from "@vue/composition-api";
-  import { getCategory, getList } from "@/api/news";
+  import { getCategory, getList, deleteInfo } from "@/api/news";
   import { common } from "@/api/common";
+  import { timestampToTime } from "../../utils/common";
   // vue3
   import { global } from "@/utils/global";
   //vue 2.0 局部用法
@@ -113,13 +123,44 @@
   export default {
     name: "infoIndex",
     components: {
-      Eject
+      Eject,
+      UpdateInfo
     },
     setup(props, { root }) {
 
       const { str, confirm } = global();
       const { getInfo, categoryInfo } = common();
 
+
+      // 定义一个总变量
+      const variable = reactive({
+        total: 0,
+        value: "",
+        value2: "",  //日期
+        value3: "id", //关键字
+        search: "",//搜索
+        ejectFlag: false,   //弹窗
+        loadingData: false,
+        categoryInfoId: "",
+        flag: false,
+        updateDialog: false,
+        infoId: ""
+      });
+
+
+      //通过父子组件传值 添加后执行更新方法
+
+      const GxInfoList = () => {
+        GetList();
+        return "更新数据了";
+      };
+
+      // 编辑功能
+      const UpdateInfoBj = (id) => {
+        variable.infoId = id;
+        variable.updateDialog = true;
+
+      };
 
       //定义属性
 
@@ -148,26 +189,60 @@
       });
 
 
+      // 时间转换 日期
+      const toData = (row, column, cellValue, index) => {
+        return timestampToTime(cellValue);
+      };
 
 
+      //类型转换
+      const toCategory = (row) => {
+        let categoryName = options.item.filter((item) => item.id == row.categoryId)[0];
+        return categoryName ? categoryName.category_name : "空";
+      };
 
-      const GetList = () => {
-        let data = {
-          categoryId: "",
-          startTiem: "",
-          endTime: "",
-          title: "",
-          id: "",
+
+      //搜索
+      const search = () => {
+        GetList();
+      };
+
+
+      const formalData = () => {
+        let formData = {
           pageNumber: pageNumber.pageNum,
           pageSize: pageNumber.pageSize
         };
+        if (variable.value) {
+          formData.categoryId = variable.value;
+        }
+        if (variable.value.length > 0) {
+          formData.startTiem = variable.value2[0];
+          formData.endTime = variable.value2[1];
+        }
+        if (variable.search) {
+          formData[variable.value3] = variable.search;
+        }
+        ;
+        return formData;
+
+      };
+
+
+      //  更新列表数据
+
+      const GetList = () => {
+        let data = formalData();
+
+        variable.loadingData = true;
         getList(data)
           .then((res) => {
             tableData.item = res.data.data.data;
             variable.total = res.data.data.total;
+            variable.loadingData = false;
           })
           .catch((err) => {
-            console.log(err);
+            variable.loadingData = false;
           });
       };
 
@@ -179,25 +254,9 @@
       const multipleSelection = reactive([]);
 
 
-      // 定义一个总变量
-      const variable = reactive({
-        total: 0,
-        value:"",
-        value2:"",  //日期
-        value3: "id", //关键字
-        search: "",//搜索
-        ejectFlag: false,   //弹窗
-      })
-
-
-
-      //定义方法
-      const handleSelectionChange = (val) => {
-        root.multipleSelection = val;
-      };
-
       const handleSizeChange = (val) => {
         pageNumber.pageSize = val;
+        GetList();
       };
 
       const handleCurrentChange = (val) => {
@@ -208,27 +267,58 @@
         variable.ejectFlag = false;
       };
 
-      const deleteItem = () => {
+      const closUpdateInfo = () => {
+        variable.updateDialog = false;
+      };
+
+      //定义方法
+      const handleSelectionChange = (val) => {
+        root.multipleSelection = val;
+        let id = val.map((item) => item.id);
+        variable.categoryInfoId = id;
+      };
+
+
+      const deleteItem = (id) => {
+        variable.categoryInfoId = [id];
         confirm({
           content: "确认删除当前信息 ?",
           tip: "警告",
           fn: confirmDelete,
-          id: 222
+          id: variable.categoryInfoId
         });
 
+        //
+
       };
+
 
       const deleteAll = () => {
+        if (!variable.categoryInfoId || variable.categoryInfoId.length === 0) {
+          root.$message({
+            message: "请勾选要删除的数据",
+            type: "error"
+          });
+          return;
+        }
+        ;
         confirm({
           content: "确认删除全部信息 ?",
-          fn: confirmDelete,
-          id: 1111
+          fn: confirmDelete
         });
       };
 
-      //确认删除
+      //确认删除 单个  多个
       const confirmDelete = (value) => {
-        console.log(value);
+        deleteInfo({ id: variable.categoryInfoId }).then((res) => {
+          root.$message({
+            message: res.data.message,
+            type: "success"
+          });
+          variable.categoryInfoId = "";
+          GetList();
+        }).catch((err) => {
+        });
       };
 
 
@@ -267,7 +357,13 @@
         handleCurrentChange,
         closEeject,
         deleteItem,
-        deleteAll
+        deleteAll,
+        toData,
+        toCategory,
+        GxInfoList,
+        search,
+        closUpdateInfo,
+        UpdateInfoBj
       };
     }
 

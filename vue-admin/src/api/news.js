@@ -22,11 +22,35 @@ export function add(data) {
   });
 }
 
+//添加子级
+
+export function addChildrenCategory(data) {
+  return service.request({
+    method: "post",
+    url:'/news/addChildrenCategory/',
+    data
+  });
+}
 //编辑
+//
 
-
+export function editInfo(data) {
+  return service.request({
+    method: "post",
+    url:'/news/editInfo/',
+    data
+  });
+}
 //删除
+//
 
+export function deleteInfo(data) {
+  return service.request({
+    method: "post",
+    url:'/news/deleteInfo/',
+    data
+  });
+}
 
 //信息 一级分类添加
 export function AddFirstCategory(data) {
@@ -44,6 +68,17 @@ export function getCategory(data) {
   return service.request({
     method: "post",
     url:'/news/getCategory/',
+    data
+  });
+}
+
+//获取子级分类
+// /news/getCategory/ （无子级分类）
+// /news/getCategoryAll/ （有子级分类）
+export function getCategoryAll(data) {
+  return service.request({
+    method: "post",
+    url:'/news/getCategoryAll/',
     data
   });
 }

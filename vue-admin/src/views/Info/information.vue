@@ -15,7 +15,9 @@
                   <el-button size="mini" round type="danger" @click="editCategory({name:item , type:'first',id:item})">
                     编辑
                   </el-button>
-                  <el-button size="mini" round type="success">添加子级</el-button>
+                  <el-button size="mini" round type="success"
+                             @click="handlerAddChild({name:item , type:'childCategory',id:item})">添加子级
+                  </el-button>
                   <el-button size="mini" round @click="deleteCategoryBtnConfirm(item.id)">删除</el-button>
                 </div>
               </h4>
@@ -24,8 +26,14 @@
                 <li v-for="children in item.children" :key="children.id">
                   {{children.category_name}}
                   <div class="buttonS">
-                    <el-button size="mini" round type="danger">编辑</el-button>
-                    <el-button size="mini" round>删除</el-button>
+                    <el-button size="mini" round type="danger"
+                               @click="childrenUpdate({name:children.category_name, id:children.id  , type: 'childUpdate' , parent:item.category_name })">
+                      编辑
+                    </el-button>
+                    <el-button size="mini" round
+                               @click="childrenDelete({name:children.category_name, id:children.id  , type: 'childUpdate'})">
+                      删除
+                    </el-button>
                   </div>
                 </li>
               </ul>
@@ -57,7 +65,14 @@
 
 <script>
   import { reactive, ref, isRef, onMounted, onBeforeMount, watch } from "@vue/composition-api";
-  import { AddFirstCategory, getCategory, DeleteCategory, EditCategory } from "@/api/news";
+  import {
+    AddFirstCategory,
+    getCategory,
+    DeleteCategory,
+    EditCategory,
+    addChildrenCategory,
+    getCategoryAll
+  } from "@/api/news";
   import { global } from "@/utils/global";
   import { common } from "@/api/common";
 
@@ -66,7 +81,7 @@
     setup(props, { root, refs }) {
 
 
-      const { getInfo, categoryInfo } = common();
+      const { getInfo, categoryInfo, getInfoAll } = common();
       //global
 
       const { confirm } = global();
@@ -138,6 +153,10 @@
           add();
         } else if (submit_button_type.value === "first") {
           editFirstCategory();
+        } else if (submit_button_type.value === "childCategory") {
+          addChildren();
+        } else if (submit_button_type.value === "childUpdate") {
+          childreneditCategory();
         }
         ;
       };
@@ -149,14 +168,13 @@
         first_input.value = false;
         first_btn.value = false;
         submit_button_type.value = "add";
+        form.catname= ""
       };
 
 
       //删除
       const deleteCategoryBtnConfirm = (categoryId) => {
         id.value = categoryId;
-        console.log(id.value);
-
         confirm({
           content: "确认删除信息 ?",
           fn: deleteCategory,
@@ -222,9 +240,124 @@
       };
 
 
+      //添加二级分类
+      const handlerAddChild = (params) => {
+        //更新确定按钮类型
+        submit_button_type.value = params.type;
+        //一级分类框
+        first_input.value = true;
+        // 确定按钮解开
+        first_btn.value = false;
+        // 二级分类 解开
+        last_input.value = false;
+        // 二级分类显示
+        lastName.value = true;
+
+        // childCategory
+
+        //存储数据
+        category.current = params.name;
+
+        form.catname = params.name.category_name;
+      };
+
+      const addChildren = () => {
+        if (!form.secname) {
+          root.$message({
+            message: "信息栏不能为空",
+            type: "error"
+          });
+          return;
+        }
+        let data = {
+          categoryName: form.secname,
+          parentId: category.current.id
+        };
+        addChildrenCategory(data).then((res) => {
+          root.$message({
+            message: res.data.message,
+            type: "success"
+          });
+          form.secname = "";
+          getInfoAll();
+        });
+      };
+
+      //子级编辑
+      const childrenUpdate = (params) => {
+
+        console.log(params);
+        //更新确定按钮类型
+        submit_button_type.value = params.type;
+        //一级分类框
+        first_input.value = true;
+        // 确定按钮解开
+        first_btn.value = false;
+        // 二级分类 解开
+        last_input.value = false;
+        // 二级分类显示
+        lastName.value = true;
+        //存储数据
+        category.current = params;
+        form.secname = params.name;
+        form.catname = params.parent;
+      };
+
+      //子级编辑
+      const childreneditCategory = () => {
+        let data = {
+          id: category.current.id,
+          categoryName: form.secname
+        };
+        EditCategory(data).then((res) => {
+          root.$message({
+            message: res.data.message,
+            type: "success"
+          });
+          form.secname = "";
+          getInfoAll();
+        }).catch((err) => {
+          root.$message({
+            message: "修改失败请重试",
+            type: "error"
+          });
+        });
+      };
+
+      //子级删除
+      const childrenDelete = (params) => {
+        id.value = params.id;
+        confirm({
+          content: "确认删除信息 ?",
+          fn: childrenDel,
+          tip: "警告",
+          catchFn: () => {
+            id.value = "";
+          }
+        });
+
+      };
+
+      const childrenDel = () => {
+        DeleteCategory({ categoryId: id.value })
+          .then((res) => {
+
+            if (res.data.resCode === 0) {
+              root.$message({
+                message: res.data.message,
+                type: "success"
+              });
+              id.value = "";
+              getInfoAll();
+            }
+          })
+          .catch((err) => {
+          });
+      };
+
       //DOM对象挂载完成
       onMounted(() => {
-        getInfo();
+        getInfoAll();
       });
 
 
@@ -247,8 +380,11 @@
         first_btn,
         categoryFrom,
         deleteCategory,
+        childrenDelete,
         deleteCategoryBtnConfirm,
-        editCategory
+        editCategory,
+        handlerAddChild,
+        childrenUpdate
       };
     }
 
