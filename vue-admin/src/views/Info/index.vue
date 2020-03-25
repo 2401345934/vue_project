@@ -72,10 +72,11 @@
       <el-table-column prop="categoryId" label="类型" width="100" :formatter="toCategory"></el-table-column>
       <el-table-column prop="createDate" label="日期" width="160" :formatter="toData"></el-table-column>
       <el-table-column prop="id" label="管理员" width="100"></el-table-column>
-      <el-table-column label="操作" width="155">
+      <el-table-column label="操作" width="270">
         <template slot-scope="scope">
           <el-button type="danger" size="mini" @click="deleteItem(scope.row.id)">删除</el-button>
           <el-button type="success" size="mini" @click="UpdateInfoBj(scope.row.id)">编辑</el-button>
+          <el-button type="success" size="mini" >编辑详情</el-button>
         </template>
       </el-table-column>
     </el-table>
