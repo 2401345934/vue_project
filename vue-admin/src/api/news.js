@@ -103,3 +103,13 @@ export function EditCategory(data) {
     data
   });
 }
+
+//七牛云
+
+export function uploadImgToken(data) {
+  return service.request({
+    method: "post",
+    url:'/uploadImgToken/',
+    data
+  });
+}

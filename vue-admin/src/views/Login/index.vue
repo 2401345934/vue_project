@@ -1,64 +1,64 @@
 <template>
-    <div id="login">
-        <div class="login-wrap">
-            <!--登陆  注册-->
-            <ul class="menu-tab">
-                <li :class="{current:item.current}" v-for="item in menuTab" :key="item.id" @click="toggleMenu(item)">
-                    {{ item.txt }}
-                </li>
-            </ul>
-            <!--登陆  注册-->
-            <!--表单-->
-            <el-form :model="ruleForm" status-icon :rules="rules" ref="loginForm" class="login-form" size="medium ">
+  <div id="login">
+    <div class="login-wrap">
+      <!--登陆  注册-->
+      <ul class="menu-tab">
+        <li :class="{current:item.current}" v-for="item in menuTab" :key="item.id" @click="toggleMenu(item)">
+          {{ item.txt }}
+        </li>
+      </ul>
+      <!--登陆  注册-->
+      <!--表单-->
+      <el-form :model="ruleForm" status-icon :rules="rules" ref="loginForm" class="login-form" size="medium ">
 
-                <el-form-item prop="username" class="item-form">
-                    <label>邮箱</label>
-                    <el-input type="text" v-model="ruleForm.username" autocomplete="off"></el-input>
-                </el-form-item>
+        <el-form-item prop="username" class="item-form">
+          <label>邮箱</label>
+          <el-input type="text" v-model="ruleForm.username" autocomplete="off"></el-input>
+        </el-form-item>
 
-                <el-form-item prop="password" class="item-form">
-                    <label>密码</label>
-                    <el-input type="password" v-model="ruleForm.password" autocomplete="off" maxlength="20"
-                              minlength="6"></el-input>
-                </el-form-item>
+        <el-form-item prop="password" class="item-form">
+          <label>密码</label>
+          <el-input type="password" v-model="ruleForm.password" autocomplete="off" maxlength="20"
+                    minlength="6"></el-input>
+        </el-form-item>
 
-                <el-form-item prop="passwords" class="item-form" v-if="mol === 'register'">
-                    <label>重复密码</label>
-                    <el-input type="password" v-model="ruleForm.passwords" autocomplete="off" maxlength="20"
-                              minlength="6"></el-input>
-                </el-form-item>
+        <el-form-item prop="passwords" class="item-form" v-if="mol === 'register'">
+          <label>重复密码</label>
+          <el-input type="password" v-model="ruleForm.passwords" autocomplete="off" maxlength="20"
+                    minlength="6"></el-input>
+        </el-form-item>
 
-                <el-form-item prop="code" class="item-form">
-                    <label>验证码</label>
-                    <el-row :gutter="10">
-                        <el-col :span="15">
-                            <div class="grid-content bg-purple">
-                                <el-input v-model="ruleForm.code" maxlength="6" minlength="6"></el-input>
-                            </div>
-                        </el-col>
-                        <el-col :span="9">
-                            <div class="grid-content bg-purple">
-                                <el-button type="success" class="block" @click="getSms()" :disabled="codeBtn.status">{{
-                                    codeBtn.text }}
-                                </el-button>
-                            </div>
-                        </el-col>
+        <el-form-item prop="code" class="item-form">
+          <label>验证码</label>
+          <el-row :gutter="10">
+            <el-col :span="15">
+              <div class="grid-content bg-purple">
+                <el-input v-model="ruleForm.code" maxlength="6" minlength="6"></el-input>
+              </div>
+            </el-col>
+            <el-col :span="9">
+              <div class="grid-content bg-purple">
+                <el-button type="success" class="block" @click="getSms()" :disabled="codeBtn.status">{{
+                  codeBtn.text }}
+                </el-button>
+              </div>
+            </el-col>
 
-                    </el-row>
-                </el-form-item>
+          </el-row>
+        </el-form-item>
 
-                <el-form-item>
-                    <el-button :disabled="loginBtn" type="danger" @click="submitForm('loginForm')"
-                               class="item-btn block">{{mol === "login"? "登陆" : "注册"}}
-                    </el-button>
+        <el-form-item>
+          <el-button :disabled="loginBtn" type="danger" @click="submitForm('loginForm')"
+                     class="item-btn block">{{mol === "login"? "登陆" : "注册"}}
+          </el-button>
 
-                </el-form-item>
-            </el-form>
-            <!--表单-->
-        </div>
-
-
+        </el-form-item>
+      </el-form>
+      <!--表单-->
     </div>
+
+
+  </div>
 </template>
 
 <script>
@@ -212,6 +212,7 @@
             mol.value === "login" ? login() : register();
           } else {
             console.log("error submit!!");
+            clearCountDown();
             return false;
           }
         });
@@ -234,7 +235,7 @@
               name: "Console"
             });
           }).catch((err) => {
-
+          clearCountDown();
         });
 
         // Login(data).then((response) => {
@@ -278,11 +279,15 @@
         // 判断邮箱和密码
         if (!ruleForm.username) {
           root.$message.error("邮箱不能空");
+          clearCountDown();
+
           return false;
         }
         //效验邮箱格式
         if (validateEmail(ruleForm.username)) {
           root.$message.error("邮箱格式不对");
+          clearCountDown();
+
           return false;
         }
 
@@ -306,6 +311,8 @@
 
 
             }).catch(error => {
+            clearCountDown();
+
           });
         }, 1000);
 
@@ -379,53 +386,53 @@
 </script>
 
 <style scoped lang="scss">
-    #login {
-        background: #344a5f;
-        height: 100vh;
+  #login {
+    background: #344a5f;
+    height: 100vh;
+  }
+
+  .login-wrap {
+    width: 330px;
+    margin: auto;
+  }
+
+  .menu-tab {
+    text-align: center;
+    li {
+      display: inline-block;
+      width: 88px;
+      border-radius: 2px;
+      color: #fff;
+      font-size: 14px;
+      line-height: 36px;
+      cursor: pointer;
     }
 
-    .login-wrap {
-        width: 330px;
-        margin: auto;
+    .current {
+      background: rgba(0, 0, 0, .1);
+    }
+  }
+
+  .login-form {
+    margin-top: 29px;
+
+    label {
+      display: block;
+      color: #fff;
+      font-size: 14px;
+      margin-bottom: 3px;
+    }
+    .item-form {
+      margin-bottom: 13px;
     }
 
-    .menu-tab {
-        text-align: center;
-        li {
-            display: inline-block;
-            width: 88px;
-            border-radius: 2px;
-            color: #fff;
-            font-size: 14px;
-            line-height: 36px;
-            cursor: pointer;
-        }
-
-        .current {
-            background: rgba(0, 0, 0, .1);
-        }
+    .block {
+      width: 100%;
+      display: block;
     }
 
-    .login-form {
-        margin-top: 29px;
-
-        label {
-            display: block;
-            color: #fff;
-            font-size: 14px;
-            margin-bottom: 3px;
-        }
-        .item-form {
-            margin-bottom: 13px;
-        }
-
-        .block {
-            width: 100%;
-            display: block;
-        }
-
-        .item-btn {
-            margin-top: 19px;
-        }
+    .item-btn {
+      margin-top: 19px;
     }
+  }
 </style>
