@@ -266,10 +266,8 @@
           });
           toggleMenu(menuTab[0]);
           clearCountDown();
-
-
         }).catch(error => {
-
+          clearCountDown()
         });
       });
 
