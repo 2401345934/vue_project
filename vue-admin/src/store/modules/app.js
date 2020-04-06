@@ -5,10 +5,16 @@ import store from "../index";
 const state = {
   isCollapse: JSON.parse(sessionStorage.getItem("isCollapse")) || false,
   token: "",
-  username: getUserName("username")  || ""
+  username: getUserName("username")  || "",
+  rules: [],
+  buttonArr:[],
+  btnPerm: []
 };
 const getters = {
-  isCollapse: (state) => state.isCollapse
+  isCollapse: (state) => state.isCollapse,
+  rules: (state) => state.rules,
+  buttonArr: (state) => state.buttonArr,
+  btnPerm: (state) => state.btnPerm,
 };
 const mutations = {
   SET_COLLAPSE(state) {
@@ -21,6 +27,15 @@ const mutations = {
   },
   SET_USERNAME(state, value) {
     state.username = value;
+  },
+  SET_RULES(state, value) {
+    state.rules = value;
+  },
+  SET_BUTTONARR(state, value) {
+    state.buttonArr = value;
+  },
+  SET_BTNPERM(state, value) {
+    state.btnPerm = value;
   },
 };
 
@@ -52,6 +67,7 @@ const actions = {
       removeUserName();
       commit("SET_TOKEN","");
       commit("SET_USERNAME","");
+      commit("SET_RULES",[]);
       resolve()
     })
   }

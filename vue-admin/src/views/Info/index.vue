@@ -38,12 +38,13 @@
         <div class="label-wrap key-word">
           <label>关键字:</label>
           <div class="wrap-content">
-            <el-select v-model="variable.value3" style="width: 100%;">
-              <el-option v-for="(item,index) in searchOption"
-                         :key="item.id"
-                         :label="item.label"
-                         :value="item.value"></el-option>
-            </el-select>
+            <SelectVue :config="variable.Options" @inputValue="changeSelectValue"></SelectVue>
+            <!--<el-select v-model="variable.value3" style="width: 100%;">-->
+            <!--<el-option v-for="(item,index) in searchOption"-->
+            <!--:key="item.id"-->
+            <!--:label="item.label"-->
+            <!--:value="item.value"></el-option>-->
+            <!--</el-select>-->
           </div>
         </div>
       </el-col>
@@ -53,10 +54,10 @@
       </el-col>
 
       <el-col :span="2">
-        <el-button type="danger" style="width: 100%;" @click="search">搜索</el-button>
+        <el-button type="danger" style="width: 100%;" @click="search" >搜索</el-button>
       </el-col>
       <el-col :span="2" style="margin-left: 41px;">
-        <el-button type="danger" class="fr" style="width: 100%;" @click="variable.ejectFlag = true">新增</el-button>
+        <el-button type="danger" class="fr" style="width: 100%;" @click="variable.ejectFlag = true" v-btnPerm="'info:add'">新增</el-button>
       </el-col>
     </el-row>
 
@@ -74,9 +75,9 @@
       <el-table-column prop="id" label="管理员" width="100"></el-table-column>
       <el-table-column label="操作" width="280">
         <template slot-scope="scope">
-          <el-button type="danger" size="mini" @click="deleteItem(scope.row.id)">删除</el-button>
-          <el-button type="success" size="mini" @click="UpdateInfoBj(scope.row.id)">编辑</el-button>
-          <el-button type="success" size="mini" @click="handlerUp(scope.row)">编辑详情</el-button>
+          <el-button type="danger" size="mini" @click="deleteItem(scope.row.id)" v-btnPerm="'info:del'">删除</el-button>
+          <el-button type="success" size="mini" @click="UpdateInfoBj(scope.row.id)" v-btnPerm="'info:edit'">编辑</el-button>
+          <el-button type="success" size="mini" @click="handlerUp(scope.row)" v-btnPerm="'info:detailed'">编辑详情</el-button>
         </template>
 
       </el-table-column>
@@ -106,15 +107,15 @@
 
     <!--修改弹出框-->
     <UpdateInfo :flag.sync="variable.updateDialog" @close="closUpdateInfo" :tmp="options.item" :flag2="GxInfoList"
-                :id="variable"/>
-
+                :id="variable" />
   </div>
 </template>
 
 <script>
   import Eject from "./dialog/info";
   import UpdateInfo from "./dialog/updateinfo";
-  import { reactive, ref, isRef, onMounted, watch } from "@vue/composition-api";
+  import SelectVue from "@/components/Select";
+  import { reactive, ref, isRef, onMounted, watch , onActivated , onDeactivated } from "@vue/composition-api";
   import { getCategory, getList, deleteInfo } from "@/api/news";
   import { common } from "@/api/common";
   import { timestampToTime } from "../../utils/common";
@@ -126,8 +127,15 @@
     name: "infoIndex",
     components: {
       Eject,
-      UpdateInfo
+      UpdateInfo,
+      SelectVue
     },
+    // activated(){
+    //   alert("我进去了");
+    // },
+    // deactivated(){
+    //   alert(`我离开了`);
+    // },
     setup(props, { root }) {
 
       const { str, confirm } = global();
@@ -139,16 +147,25 @@
         total: 0,
         value: "",
         value2: "",  //日期
-        value3: "id", //关键字
+        value3: "", //关键字
         search: "",//搜索
         ejectFlag: false,   //弹窗
         loadingData: false,
         categoryInfoId: "",
         flag: false,
         updateDialog: false,
-        infoId: ""
+        infoId: "",
+        Options: {
+          init: ["id", "title"]
+        }
       });
 
+
+
+      // 组件返回值
+      const changeSelectValue = (val) => {
+        variable.value3 = val;
+      };
 
       //通过父子组件传值 添加后执行更新方法
 
@@ -173,10 +190,10 @@
 
       //搜索关键字
 
-      const searchOption = reactive([
-        { value: "id", label: "ID" },
-        { value: "title", label: "标题" }
-      ]);
+      // const searchOption = reactive([
+      //   { value: "id", label: "ID" },
+      //   { value: "title", label: "标题" }
+      // ]);
 
 
       //表格
@@ -324,6 +341,7 @@
       };
 
 
+
       //DOM对象挂载完成 生命周期
       onMounted(() => {
         //Vue  3.0
@@ -337,6 +355,13 @@
 
         GetList();
       });
+
+
+      onActivated(() => {
+        getInfo();
+      })
+      onDeactivated(() => {
+      })
 
       //watch  监听  VUE 3.0
       //分类
@@ -378,7 +403,7 @@
         //reactive
         options,
         formInline,
-        searchOption,
+        // searchOption,
         tableData,
         multipleSelection,
         handleSelectionChange,
@@ -393,7 +418,8 @@
         search,
         closUpdateInfo,
         UpdateInfoBj,
-        handlerUp
+        handlerUp,
+        changeSelectValue
       };
     }
 
@@ -419,3 +445,19 @@
 
 
 </style>
+
+<!--
+组件目录  src > components > Select > index
+组件引用方式   import Select from "@/components/Select";
+template:  <Select  :config="data.configOption" />
+
+参数配置
+configOption: {
+  init: ["name", "email" , ...]
+}
+
+configOption  类型 Object
+init   类型 Array
+
+
+-->

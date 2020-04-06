@@ -11,12 +11,39 @@ router.beforeEach((to, from, next) => {
     if (to.path === "/login") {
       removeToken();
       removeUserName();
-      store.commit("app/SET_TOKEN","");
-      store.commit("app/SET_USERNAME","");
+      store.commit("app/SET_TOKEN", "");
+      store.commit("app/SET_USERNAME", "");
 
       next();
     } else {
-      next();
+
+      //分配权限        //获取
+      if (store.getters["app/rules"].length === 0) {
+        store.dispatch("pemission/getRoules").then((res) => {
+           //代表成功了
+          let rols = res.role;
+          let buttonS = res.button;
+          let btnPerm = res.btnPerm
+          console.log(res);
+          //修改
+          store.commit("app/SET_RULES", rols);
+          store.commit("app/SET_BUTTONARR", buttonS);
+          store.commit("app/SET_BTNPERM", btnPerm);
+          store.dispatch("pemission/createRouter", rols).then((res) => {
+            let addRouters = store.getters["pemission/addRouters"];
+            let allRouters = store.getters["pemission/allRouter"];
+
+            //更新路由
+            router.options.routes = allRouters;
+            //  添加动态路由
+            router.addRoutes(addRouters);
+            next({ ...to, replace: true });  //不会有历史记录 replace:true
+          });
+        });
+      } else {
+        next();
+      }
+
     }
 
 

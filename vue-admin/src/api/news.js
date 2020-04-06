@@ -105,6 +105,12 @@ export function EditCategory(data) {
 }
 
 //七牛云
+/*
+* AK  七牛云秘钥AK
+* SK  七牛云秘钥sk
+* buckety 七牛云存储空间
+*
+* */
 
 export function uploadImgToken(data) {
   return service.request({
@@ -113,3 +119,4 @@ export function uploadImgToken(data) {
     data
   });
 }
+
