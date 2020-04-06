@@ -3,7 +3,7 @@ import { Message } from "element-ui";
 import { getToken ,getUserName} from "./app";
 
 //创建axios  赋给变量service
-const BASEURL = "/devApi";
+const BASEURL = '/devApi';
 
 const service = axios.create({
   baseURL: BASEURL,

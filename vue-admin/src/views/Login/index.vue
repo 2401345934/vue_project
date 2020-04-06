@@ -229,7 +229,6 @@
 
         root.$store.dispatch("app/login", data)
           .then((response) => {
-            location.href = "/console";
             //页面跳转
             root.$router.push({
               name: "Console"
